@@ -18,8 +18,8 @@ test('describeSources separates supported, disabled, and unsupported sources', (
   assert.deepEqual(plan.disabled.map((source) => source.name).sort(), ['companyApi', 'indeed']);
 });
 
-test('runJobSearch ignores disabled sources and clearly reports unsupported ones', () => {
-  const result = runJobSearch({
+test('runJobSearch ignores disabled sources and clearly reports unsupported ones', async () => {
+  const result = await runJobSearch({
     targetJobTitles: ['Frontend Engineer'],
     skills: ['JavaScript', 'React'],
     location: 'Remote',

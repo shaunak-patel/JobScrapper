@@ -152,7 +152,7 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
       ...(req.body?.sources || {}),
     };
 
-    const result = runJobSearch(profile, sources);
+    const result = await runJobSearch(profile, sources);
     await writeJson('results.json', result.jobs);
 
     res.json({
