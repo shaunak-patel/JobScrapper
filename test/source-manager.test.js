@@ -37,3 +37,33 @@ test('runJobSearch ignores disabled sources and clearly reports unsupported ones
   assert.equal(result.unsupported.some((item) => item.name === 'workday'), true);
   assert.equal(SOURCE_CATALOG.greenhouse.supported, true);
 });
+
+test('runJobSearch resolves the Greenhouse board from the first configured job target', async () => {
+  const profile = {
+    jobTargets: [
+      { title: 'Frontend Engineer', greenhouseBoardUrl: 'https://boards.greenhouse.io/example-frontend' },
+      { title: 'Product Engineer', greenhouseBoardUrl: 'https://boards.greenhouse.io/example-product' },
+    ],
+    greenhouseBoardUrl: 'https://boards.greenhouse.io/fallback',
+  };
+
+  const calls = [];
+  const originalFetch = global.fetch;
+  global.fetch = async (url) => {
+    calls.push(url);
+    return {
+      ok: true,
+      json: async () => ({ jobs: [{ id: 1, title: 'Frontend Engineer', company: { name: 'Example' }, location: 'Remote', absolute_url: 'https://example.com/job/1', updated_at: new Date().toISOString() }] }),
+    };
+  };
+
+  try {
+    const result = await runJobSearch(profile, { greenhouse: true });
+
+    assert.equal(calls[0], 'https://boards.greenhouse.io/example-frontend');
+    assert.equal(result.jobs.length >= 1, true);
+    assert.equal(result.enabled.some((item) => item.name === 'greenhouse'), true);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});

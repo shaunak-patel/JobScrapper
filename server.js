@@ -19,6 +19,11 @@ const defaultProfile = {
   workMode: 'remote',
   employmentType: 'full_time',
   interests: ['AI', 'Productivity'],
+  greenhouseBoardUrl: '',
+  jobTargets: [{
+    title: 'Software Engineer',
+    greenhouseBoardUrl: '',
+  }],
 };
 
 const defaultSources = {
@@ -99,15 +104,24 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
 
   app.post('/api/profile', async (req, res) => {
     const incoming = req.body || {};
+    const jobTargets = Array.isArray(incoming.jobTargets) && incoming.jobTargets.length
+      ? incoming.jobTargets
+      : [{
+          title: Array.isArray(incoming.targetJobTitles) && incoming.targetJobTitles.length ? incoming.targetJobTitles[0] : defaultProfile.targetJobTitles[0],
+          greenhouseBoardUrl: incoming.greenhouseBoardUrl || '',
+        }];
+
     const profile = {
       ...defaultProfile,
       ...incoming,
+      jobTargets,
       targetJobTitles: Array.isArray(incoming.targetJobTitles) && incoming.targetJobTitles.length
         ? incoming.targetJobTitles
         : defaultProfile.targetJobTitles,
       skills: Array.isArray(incoming.skills) && incoming.skills.length
         ? incoming.skills
         : defaultProfile.skills,
+      greenhouseBoardUrl: incoming.greenhouseBoardUrl || jobTargets[0]?.greenhouseBoardUrl || '',
     };
 
     await writeJson('profile.json', profile);
@@ -145,13 +159,22 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
   app.post('/api/summary', async (req, res) => {
     const jobs = Array.isArray(req.body?.jobs) ? req.body.jobs : await readJson('results.json', defaultResults);
     const summary = generateMarkdownSummary(jobs);
+    await writeJson('summary.md', summary);
     res.type('text/markdown').send(summary);
   });
 
   app.post('/api/search', async (req, res) => {
+    const incomingProfile = req.body?.profile || {};
     const profile = {
       ...defaultProfile,
-      ...(req.body?.profile || {}),
+      ...incomingProfile,
+      greenhouseBoardUrl: incomingProfile.greenhouseBoardUrl || incomingProfile.jobTargets?.[0]?.greenhouseBoardUrl || defaultProfile.greenhouseBoardUrl,
+      jobTargets: Array.isArray(incomingProfile.jobTargets) && incomingProfile.jobTargets.length
+        ? incomingProfile.jobTargets
+        : [{
+            title: Array.isArray(incomingProfile.targetJobTitles) && incomingProfile.targetJobTitles.length ? incomingProfile.targetJobTitles[0] : defaultProfile.targetJobTitles[0],
+            greenhouseBoardUrl: incomingProfile.greenhouseBoardUrl || defaultProfile.greenhouseBoardUrl,
+          }],
     };
 
     const sources = {
@@ -160,11 +183,15 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
     };
 
     const result = await runJobSearch(profile, sources);
+    const summary = generateMarkdownSummary(result.jobs);
+
     await writeJson('results.json', result.jobs);
+    await writeJson('summary.md', summary);
 
     res.json({
       ...result,
       profile,
+      summary,
       sourceSummary: {
         enabledCount: result.enabled.length,
         supportedCount: result.supported.length,
