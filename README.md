@@ -98,3 +98,18 @@ Include a Markdown summary for quick review, for example:
 
 ## Working principle for future sessions
 This file is the durable project memory. If the session chat is lost, reopen this project and continue from the current step rather than re-explaining the project from scratch.
+
+## Git workflow
+This project follows a simple Git flow:
+- `dev`: active development work
+- `main`: stable release branch
+- `prod`: production deployment branch
+
+Use the branch rules described in [BRANCHING.md](BRANCHING.md), and keep commit messages descriptive and scoped to the work, such as `feat:`, `fix:`, `docs:`, `test:`, or `chore:`.
+
+## Current implementation state
+The initial local app foundation is complete and validated:
+- local profile persistence works
+- source preferences are stored locally
+- resume upload is supported in the app UI
+- a lightweight Node + Express app is running locally on port 3000
