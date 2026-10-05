@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobScrapper</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <h1>JobScrapper</h1>
+        <p>Local job search profile and source manager</p>
+      </header>
+
+      <main class="grid">
+        <section class="panel">
+          <h2>Profile</h2>
+          <form id="profile-form">
+            <label>
+              Target job titles
+              <textarea id="targetJobTitles" name="targetJobTitles" rows="3"></textarea>
+            </label>
+
+            <label>
+              Skills
+              <textarea id="skills" name="skills" rows="3"></textarea>
+            </label>
+
+            <div class="row">
+              <label>
+                Experience years
+                <input id="experienceYears" name="experienceYears" type="number" min="0" step="1" />
+              </label>
+
+              <label>
+                Location
+                <input id="location" name="location" type="text" />
+              </label>
+            </div>
+
+            <div class="row">
+              <label>
+                Work mode
+                <select id="workMode" name="workMode">
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="onsite">Onsite</option>
+                </select>
+              </label>
+
+              <label>
+                Employment type
+                <select id="employmentType" name="employmentType">
+                  <option value="full_time">Full time</option>
+                  <option value="contract">Contract</option>
+                  <option value="part_time">Part time</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Interests
+              <textarea id="interests" name="interests" rows="2"></textarea>
+            </label>
+
+            <div class="actions">
+              <button type="submit">Save profile</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Resume</h2>
+          <input id="resumeInput" type="file" accept=".txt,.md,.pdf,.doc,.docx" />
+          <div class="actions small-gap">
+            <button id="uploadResumeButton" type="button">Upload resume</button>
+          </div>
+        </section>
+
+        <section class="panel span-two">
+          <h2>Sources</h2>
+          <form id="sources-form" class="checkbox-grid">
+            <label><input type="checkbox" name="linkedin" /> LinkedIn</label>
+            <label><input type="checkbox" name="workday" /> Workday</label>
+            <label><input type="checkbox" name="greenhouse" /> Greenhouse</label>
+            <label><input type="checkbox" name="indeed" /> Indeed</label>
+            <label><input type="checkbox" name="companyApi" /> Company API</label>
+          </form>
+          <div class="actions">
+            <button id="saveSourcesButton" type="button">Save sources</button>
+          </div>
+        </section>
+
+        <section class="panel span-two">
+          <h2>Results</h2>
+          <div id="results" class="results-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

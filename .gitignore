@@ -1,0 +1,18 @@
+# Local app data
+app-data/
+data/
+output/
+
+# Secrets and local env files
+.env
+.env.*
+*.local.json
+
+# OS noise
+.DS_Store
+
+# Generated or transient files
+node_modules/
+dist/
+build/
+coverage/
