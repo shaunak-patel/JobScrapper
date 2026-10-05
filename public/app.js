@@ -13,6 +13,7 @@ const defaultProfile = {
   workMode: 'remote',
   employmentType: 'full_time',
   interests: ['AI', 'Productivity'],
+  greenhouseBoardUrl: '',
 };
 
 function parseTextInput(value) {
@@ -31,6 +32,7 @@ function populateProfileForm(profile) {
   document.getElementById('workMode').value = safeProfile.workMode ?? 'remote';
   document.getElementById('employmentType').value = safeProfile.employmentType ?? 'full_time';
   document.getElementById('interests').value = (safeProfile.interests || []).join(', ');
+  document.getElementById('greenhouseBoardUrl').value = safeProfile.greenhouseBoardUrl ?? '';
 }
 
 function getProfileFromForm() {
@@ -42,6 +44,7 @@ function getProfileFromForm() {
     workMode: document.getElementById('workMode').value,
     employmentType: document.getElementById('employmentType').value,
     interests: parseTextInput(document.getElementById('interests').value),
+    greenhouseBoardUrl: document.getElementById('greenhouseBoardUrl').value,
   };
 }
 
@@ -83,21 +86,38 @@ function renderResults(results) {
     .join('');
 }
 
+function renderSummary(summaryText) {
+  const summaryContainer = document.getElementById('summary');
+  if (!summaryText) {
+    summaryContainer.innerHTML = '<p>No markdown summary yet.</p>';
+    return;
+  }
+
+  summaryContainer.innerHTML = `<pre>${summaryText}</pre>`;
+}
+
 async function loadData() {
   try {
-    const [profileRes, sourcesRes, resultsRes] = await Promise.all([
+    const [profileRes, sourcesRes, resultsRes, summaryRes] = await Promise.all([
       fetch('/api/profile'),
       fetch('/api/sources'),
       fetch('/api/results'),
+      fetch('/api/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobs: [] }),
+      }),
     ]);
 
     const profile = await profileRes.json();
     const sources = await sourcesRes.json();
     const results = await resultsRes.json();
+    const summaryText = await summaryRes.text();
 
     populateProfileForm(profile);
     populateSourcesForm(sources);
     renderResults(results);
+    renderSummary(summaryText);
   } catch (error) {
     console.error('Failed to load JobScrapper data', error);
     resultsContainer.innerHTML = '<p>Unable to load saved job data.</p>';
@@ -117,6 +137,34 @@ profileForm.addEventListener('submit', async (event) => {
   const savedProfile = await response.json();
   populateProfileForm(savedProfile);
   alert('Profile saved locally.');
+});
+
+const searchJobsButton = document.getElementById('searchJobsButton');
+searchJobsButton.addEventListener('click', async () => {
+  const profile = getProfileFromForm();
+  const sources = getSourcesFromForm();
+
+  const response = await fetch('/api/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ profile, sources }),
+  });
+
+  const payload = await response.json();
+
+  if (Array.isArray(payload.jobs)) {
+    renderResults(payload.jobs);
+  }
+
+  const summaryResponse = await fetch('/api/summary', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobs: payload.jobs || [] }),
+  });
+
+  const summaryText = await summaryResponse.text();
+  renderSummary(summaryText);
+  alert(`Search complete. ${payload.jobs?.length ?? 0} jobs found.`);
 });
 
 saveSourcesButton.addEventListener('click', async () => {

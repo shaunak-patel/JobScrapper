@@ -64,6 +64,11 @@
               <textarea id="interests" name="interests" rows="2"></textarea>
             </label>
 
+            <label>
+              Greenhouse board URL
+              <input id="greenhouseBoardUrl" name="greenhouseBoardUrl" type="url" placeholder="https://boards.greenhouse.io/company" />
+            </label>
+
             <div class="actions">
               <button type="submit">Save profile</button>
             </div>
@@ -94,7 +99,11 @@
 
         <section class="panel span-two">
           <h2>Results</h2>
+          <div class="actions">
+            <button id="searchJobsButton" type="button">Search jobs</button>
+          </div>
           <div id="results" class="results-list"></div>
+          <div id="summary" class="summary-box"></div>
         </section>
       </main>
     </div>

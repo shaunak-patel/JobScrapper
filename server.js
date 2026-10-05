@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { dedupeJobs, rankJobs } from './lib/job-utils.js';
 import { runJobSearch } from './lib/source-manager.js';
+import { generateMarkdownSummary } from './lib/summary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,6 +140,12 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
     const deduped = rankJobs(dedupeJobs(nextResults));
     await writeJson('results.json', deduped);
     res.json(deduped);
+  });
+
+  app.post('/api/summary', async (req, res) => {
+    const jobs = Array.isArray(req.body?.jobs) ? req.body.jobs : await readJson('results.json', defaultResults);
+    const summary = generateMarkdownSummary(jobs);
+    res.type('text/markdown').send(summary);
   });
 
   app.post('/api/search', async (req, res) => {
