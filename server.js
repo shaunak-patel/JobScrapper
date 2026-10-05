@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { dedupeJobs, rankJobs } from './lib/job-utils.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -127,13 +129,15 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
 
   app.get('/api/results', async (_, res) => {
     const results = await readJson('results.json', defaultResults);
-    res.json(results);
+    const ranked = rankJobs(dedupeJobs(results));
+    res.json(ranked);
   });
 
   app.post('/api/results', async (req, res) => {
     const nextResults = Array.isArray(req.body) ? req.body : [req.body];
-    await writeJson('results.json', nextResults);
-    res.json(nextResults);
+    const deduped = rankJobs(dedupeJobs(nextResults));
+    await writeJson('results.json', deduped);
+    res.json(deduped);
   });
 
   app.post('/api/resume', async (req, res) => {
