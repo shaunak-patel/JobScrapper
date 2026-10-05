@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { dedupeJobs, rankJobs } from './lib/job-utils.js';
+import { runJobSearch } from './lib/source-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -138,6 +139,32 @@ export function createApp(baseDir = path.join(os.homedir(), 'Library', 'Applicat
     const deduped = rankJobs(dedupeJobs(nextResults));
     await writeJson('results.json', deduped);
     res.json(deduped);
+  });
+
+  app.post('/api/search', async (req, res) => {
+    const profile = {
+      ...defaultProfile,
+      ...(req.body?.profile || {}),
+    };
+
+    const sources = {
+      ...defaultSources,
+      ...(req.body?.sources || {}),
+    };
+
+    const result = runJobSearch(profile, sources);
+    await writeJson('results.json', result.jobs);
+
+    res.json({
+      ...result,
+      profile,
+      sourceSummary: {
+        enabledCount: result.enabled.length,
+        supportedCount: result.supported.length,
+        skippedCount: result.skipped.length,
+        unsupportedCount: result.unsupported.length,
+      },
+    });
   });
 
   app.post('/api/resume', async (req, res) => {
